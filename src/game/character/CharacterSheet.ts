@@ -2,4 +2,5 @@ export interface CharacterAttributes{ninjutsu:number;taijutsu:number;bukijutsu:n
 export interface CharacterResources{vida:number;chakra:number;stamina:number}
 export type NinjaClass="taijutsu"|"ninjutsu"|"genjutsu"|"bukijutsu";
 export interface CharacterBuild{grade:string;classId:NinjaClass;elements:string[];clan?:string;invocation?:string;sageMode?:string;cursedSeal?:string;gates?:string}
-export interface CharacterSheet{level:number;attributes:CharacterAttributes;resources:CharacterResources;build:CharacterBuild}
+export interface EquipmentSet{weapon?:string;head?:string;amulet?:string}
+export interface CharacterSheet{level:number;xp:number;xpToNext:number;trainingPoints:number;talentPoints:number;attributes:CharacterAttributes;resources:CharacterResources;build:CharacterBuild;knownJutsus:string[];equipment:EquipmentSet;inventory:string[]}
