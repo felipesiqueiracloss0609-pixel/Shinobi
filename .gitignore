@@ -3,3 +3,22 @@ dist/
 coverage/
 .DS_Store
 *.log
+
+# Local Tibia/OpenTibia source assets. Never commit proprietary client files.
+ShinobiAuthoring/
+authoring/client-original/
+authoring/map-source/
+*.spr
+*.dat
+*.otfi
+*.otb
+*.otbm
+*-house.xml
+*-spawn.xml
+
+# Generated local exports
+authoring/exports/
+map-inspection.json
+source-inspection.json
+source-set-report.json
+Tibia.parsed.json
