@@ -1,61 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
+import { parseOTB, parseDatItems, detectDatVersion, createSprSource } from "./legacy-parsers.mjs";
 
 const TILE_SIZE = 32;
-const DEFAULT_CHUNK_SIZE = 64;
-const ATLAS_GRID = 16;
+const CHUNK_SIZE = 32;
+const ATLAS_GRID = 64;
 const ATLAS_SIZE = TILE_SIZE * ATLAS_GRID;
 const ATLAS_SLOTS = ATLAS_GRID * ATLAS_GRID;
-
-function crc32(buffer) {
-  let crc = 0xffffffff;
-  for (let i = 0; i < buffer.length; i++) {
-    crc ^= buffer[i];
-    for (let j = 0; j < 8; j++) {
-      const mask = -(crc & 1);
-      crc = (crc >>> 1) ^ (0xedb88320 & mask);
-    }
-  }
-  return (crc ^ 0xffffffff) >>> 0;
-}
-
-function pngChunk(type, data) {
-  const name = Buffer.from(type, "ascii");
-  const body = Buffer.concat([name, data]);
-  const out = Buffer.alloc(8 + body.length + 4);
-  out.writeUInt32BE(data.length, 0);
-  body.copy(out, 4);
-  out.writeUInt32BE(crc32(body), 4 + body.length);
-  return out;
-}
-
-function encodePngRGBA(width, height, rgba) {
-  const stride = width * 4;
-  const scanlines = Buffer.alloc((stride + 1) * height);
-  for (let y = 0; y < height; y++) {
-    const row = y * (stride + 1);
-    scanlines[row] = 0;
-    Buffer.from(rgba.buffer, rgba.byteOffset + y * stride, stride).copy(scanlines, row + 1);
-  }
-
-  const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
-  const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(width, 0);
-  ihdr.writeUInt32BE(height, 4);
-  ihdr[8] = 8;
-  ihdr[9] = 6;
-  ihdr[10] = 0;
-  ihdr[11] = 0;
-  ihdr[12] = 0;
-
-  return Buffer.concat([
-    signature,
-    pngChunk("IHDR", ihdr),
-    pngChunk("IDAT", zlib.deflateSync(scanlines, { level: 6 })),
-    pngChunk("IEND", Buffer.alloc(0))
-  ]);
-}
 
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
@@ -83,367 +35,548 @@ function assertSources(sourceDir) {
     map: findSource(sourceDir, ["MAPA1.otbm", "map.otbm"]),
     spr: findSource(sourceDir, ["Tibia.spr", "tibia.spr"]),
     dat: findSource(sourceDir, ["Tibia.dat", "tibia.dat"]),
-    otb: findSource(sourceDir, ["items.otb", "items.otb.xml"]),
+    otb: findSource(sourceDir, ["items.otb", "items.otb.xml"])
   };
 
-  const missing = Object.entries(required).filter(([, value]) => !value).map(([key]) => key);
+  const missing = Object.entries(required)
+    .filter(([, value]) => !value)
+    .map(([key]) => key);
+
   if (missing.length) {
     throw new Error(
-      "A pasta selecionada precisa conter MAPA1.otbm, Tibia.spr, Tibia.dat e items.otb. Ausentes: " +
+      "A pasta precisa conter MAPA1.otbm, Tibia.spr, Tibia.dat e items.otb. Ausentes: " +
       missing.join(", ")
     );
   }
+
   return required;
 }
 
 function copyOptionalSidecars(sourceDir, outputDir) {
   for (const name of ["MAPA1-house.xml", "MAPA1-spawn.xml", "Tibia.otfi", "items.otbm"]) {
     const source = path.join(sourceDir, name);
-    if (fileExists(source)) fs.copyFileSync(source, path.join(outputDir, "source", name));
+    if (fileExists(source)) {
+      fs.copyFileSync(source, path.join(outputDir, "source", name));
+    }
   }
 }
 
-function alphaBlend(dst, dstIndex, src, srcIndex) {
-  const sa = src[srcIndex + 3];
+function crc32(buffer) {
+  let crc = 0xffffffff;
+  for (let i = 0; i < buffer.length; i++) {
+    crc ^= buffer[i];
+    for (let j = 0; j < 8; j++) {
+      const mask = -(crc & 1);
+      crc = (crc >>> 1) ^ (0xedb88320 & mask);
+    }
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function pngChunk(type, data) {
+  const name = Buffer.from(type, "ascii");
+  const body = Buffer.concat([name, data]);
+  const out = Buffer.alloc(8 + body.length + 4);
+  out.writeUInt32BE(data.length, 0);
+  body.copy(out, 4);
+  out.writeUInt32BE(crc32(body), 4 + body.length);
+  return out;
+}
+
+function encodePngRGBA(width, height, rgba) {
+  const stride = width * 4;
+  const scanlines = Buffer.alloc((stride + 1) * height);
+
+  for (let y = 0; y < height; y++) {
+    const row = y * (stride + 1);
+    scanlines[row] = 0;
+    Buffer.from(rgba.buffer, rgba.byteOffset + y * stride, stride)
+      .copy(scanlines, row + 1);
+  }
+
+  const signature = Buffer.from([137,80,78,71,13,10,26,10]);
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(width, 0);
+  ihdr.writeUInt32BE(height, 4);
+  ihdr[8] = 8;
+  ihdr[9] = 6;
+
+  return Buffer.concat([
+    signature,
+    pngChunk("IHDR", ihdr),
+    pngChunk("IDAT", zlib.deflateSync(scanlines, { level: 6 })),
+    pngChunk("IEND", Buffer.alloc(0))
+  ]);
+}
+
+function alphaBlend(dst, di, src, si) {
+  const sa = src[si + 3];
   if (sa === 0) return;
 
   if (sa === 255) {
-    dst[dstIndex] = src[srcIndex];
-    dst[dstIndex + 1] = src[srcIndex + 1];
-    dst[dstIndex + 2] = src[srcIndex + 2];
-    dst[dstIndex + 3] = 255;
+    dst[di] = src[si];
+    dst[di + 1] = src[si + 1];
+    dst[di + 2] = src[si + 2];
+    dst[di + 3] = 255;
     return;
   }
 
-  const da = dst[dstIndex + 3];
+  const da = dst[di + 3];
   const saF = sa / 255;
   const daF = da / 255;
   const outA = saF + daF * (1 - saF);
+
   if (outA <= 0) {
-    dst[dstIndex + 3] = 0;
+    dst[di + 3] = 0;
     return;
   }
 
-  dst[dstIndex] = Math.round((src[srcIndex] * saF + dst[dstIndex] * daF * (1 - saF)) / outA);
-  dst[dstIndex + 1] = Math.round((src[srcIndex + 1] * saF + dst[dstIndex + 1] * daF * (1 - saF)) / outA);
-  dst[dstIndex + 2] = Math.round((src[srcIndex + 2] * saF + dst[dstIndex + 2] * daF * (1 - saF)) / outA);
-  dst[dstIndex + 3] = Math.round(outA * 255);
+  dst[di] = Math.round((src[si] * saF + dst[di] * daF * (1 - saF)) / outA);
+  dst[di + 1] = Math.round((src[si + 1] * saF + dst[di + 1] * daF * (1 - saF)) / outA);
+  dst[di + 2] = Math.round((src[si + 2] * saF + dst[di + 2] * daF * (1 - saF)) / outA);
+  dst[di + 3] = Math.round(outA * 255);
 }
 
-function blit32(canvas, width, x, y, rgba, offsetX = 0, offsetY = 0) {
+function blitSprite(canvas, canvasWidth, x, y, rgba, offsetX = 0, offsetY = 0) {
   const startX = Math.round(x + offsetX);
   const startY = Math.round(y + offsetY);
+
   for (let sy = 0; sy < TILE_SIZE; sy++) {
     const dy = startY + sy;
-    if (dy < 0 || dy >= width) continue;
+    if (dy < 0 || dy >= canvasWidth) continue;
+
     for (let sx = 0; sx < TILE_SIZE; sx++) {
       const dx = startX + sx;
-      if (dx < 0 || dx >= width) continue;
+      if (dx < 0 || dx >= canvasWidth) continue;
+
       const si = (sy * TILE_SIZE + sx) * 4;
-      const di = (dy * width + dx) * 4;
+      const di = (dy * canvasWidth + dx) * 4;
       alphaBlend(canvas, di, rgba, si);
     }
   }
 }
 
-function thingSpriteId(thing) {
-  return Number(thing?.spriteIds?.[0] ?? 0);
+function thingInfo(datItem) {
+  if (!datItem) return null;
+
+  const firstSprite = Number(datItem.spriteIds?.[0] ?? 0);
+  return {
+    id: Number(datItem.id),
+    width: Number(datItem.width ?? 1),
+    height: Number(datItem.height ?? 1),
+    layers: Number(datItem.layers ?? 1),
+    patternX: Number(datItem.patternX ?? 1),
+    patternY: Number(datItem.patternY ?? 1),
+    patternZ: Number(datItem.patternZ ?? 1),
+    animations: Number(datItem.animations ?? 1),
+    spriteIds: Array.from(datItem.spriteIds ?? []).map(Number),
+    firstSprite,
+    flags: datItem.flags ?? {}
+  };
 }
 
-function thingSummary(thing) {
-  if (!thing) return null;
-  return {
-    id: Number(thing.id),
-    spriteIds: Array.from(thing.spriteIds ?? []).map(Number),
-    texture: thing.texture ?? null,
-    flags: thing.flags ?? {}
-  };
+function renderThingFirstFrame(canvas, canvasWidth, originX, originY, datItem, sprSource) {
+  if (!datItem) return 0;
+
+  const width = Math.max(1, Number(datItem.width ?? 1));
+  const height = Math.max(1, Number(datItem.height ?? 1));
+  const layer = 0;
+  const base = 0;
+  let rendered = 0;
+
+  for (let h = 0; h < height; h++) {
+    for (let w = 0; w < width; w++) {
+      const spriteIndex = (((((base * Number(datItem.patternZ ?? 1) + 0)
+        * Number(datItem.patternY ?? 1) + 0)
+        * Number(datItem.patternX ?? 1) + 0)
+        * Number(datItem.layers ?? 1) + layer)
+        * height + h) * width + w);
+
+      const spriteId = Number(datItem.spriteIds?.[spriteIndex] ?? 0);
+      const rgba = sprSource.getRGBA(spriteId);
+      if (!rgba) continue;
+
+      // OTB/Tibia multi-tile objects are anchored at the bottom-right tile.
+      const dx = -(width - 1 - w) * TILE_SIZE + Number(datItem.flags.offsetX ?? 0);
+      const dy = -(height - 1 - h) * TILE_SIZE + Number(datItem.flags.offsetY ?? 0);
+
+      blitSprite(canvas, canvasWidth, originX + dx, originY + dy, rgba);
+      rendered++;
+    }
+  }
+
+  return rendered;
+}
+
+function chunkKey(z, cx, cy) {
+  return z + "/" + cx + "/" + cy;
+}
+
+function cleanPath(value) {
+  return value.replaceAll(path.sep, "/");
 }
 
 export async function importNarutibiaBase({ sourceDir, outputDir, progress = () => {} }) {
   const source = assertSources(sourceDir);
+
   ensureDir(outputDir);
   ensureDir(path.join(outputDir, "sprites"));
   ensureDir(path.join(outputDir, "maps"));
   ensureDir(path.join(outputDir, "source"));
   copyOptionalSidecars(sourceDir, outputDir);
 
-  progress(3, "Lendo OTB server", "items.otb");
-  const { OTBReader } = await import("@v0rt4c/ot-otb");
-  const otbRoot = new OTBReader(new Uint8Array(fs.readFileSync(source.otb))).parse();
+  progress(2, "Lendo OTB", path.basename(source.otb));
+  const otb = parseOTB(new Uint8Array(fs.readFileSync(source.otb)));
+
   const serverToClient = new Map();
-  for (const item of otbRoot.children ?? []) {
-    const serverId = Number(item.serverId);
-    const clientId = Number(item.clientId);
-    if (Number.isFinite(serverId) && Number.isFinite(clientId)) {
-      serverToClient.set(serverId, clientId);
-    }
+  for (const item of otb.items) {
+    serverToClient.set(Number(item.serverId), Number(item.clientId));
   }
 
-  progress(7, "Lendo DAT do cliente", "Tibia.dat");
-  const { DatReader } = await import("@v0rt4c/dat");
-  const datReader = DatReader(new Uint8Array(fs.readFileSync(source.dat)));
-  const datRoot = datReader.parse();
-  const datItems = Array.isArray(datRoot.items) ? datRoot.items : [];
-  const datById = new Map(datItems.map((thing) => [Number(thing.id), thing]));
+  const otfiPath = path.join(sourceDir, "Tibia.otfi");
+  progress(6, "Detectando versão DAT", fileExists(otfiPath) ? "Tibia.otfi" : "fallback");
 
-  progress(12, "Lendo SPR", "Tibia.spr");
-  const { read: readSpr } = await import("@v0rt4c/spr");
-  const sprBytes = new Uint8Array(fs.readFileSync(source.spr));
-  let lastSprProgress = 0;
-  const spr = readSpr(sprBytes, (info) => {
-    const local = Number(info.progressPercent ?? 0);
-    if (local >= lastSprProgress + 5 || local >= 99) {
-      lastSprProgress = local;
-      progress(12 + Math.round(local * 0.18), "Extraindo sprites", Math.round(local) + "%");
-    }
-  });
-  const sprites = Array.isArray(spr?.sprites) ? spr.sprites : [];
-  if (!sprites.length) throw new Error("Tibia.spr foi lido, mas nenhum sprite foi encontrado.");
+  const datBuffer = fs.readFileSync(source.dat);
+  const versionInfo = detectDatVersion(datBuffer, otfiPath);
 
-  const spriteById = new Map(sprites.map((sprite) => [Number(sprite.id), sprite.rgba]));
-  const spriteAtlases = [];
-  const spriteManifest = { version: 1, tileSize: TILE_SIZE, atlasSize: ATLAS_SIZE, atlases: [], sprites: {} };
+  progress(9, "Lendo DAT", "cliente " + versionInfo.version);
+  const dat = parseDatItems(datBuffer, versionInfo);
 
-  progress(32, "Gerando biblioteca visual", sprites.length + " sprites");
+  progress(16, "Lendo biblioteca SPR", path.basename(source.spr));
+  const sprBuffer = fs.readFileSync(source.spr);
+  const spr = createSprSource(sprBuffer);
+
+  progress(20, "Gerando atlas de sprites", spr.count + " sprites");
+
+  const spritesDir = path.join(outputDir, "sprites");
+  const atlases = [];
+  const atlasMeta = {
+    schemaVersion: 1,
+    type: "ShinobiSpriteLibrary-v1",
+    sourceKind: spr.kind,
+    signature: typeof spr.signature === "number"
+      ? "0x" + spr.signature.toString(16).toUpperCase()
+      : spr.signature,
+    count: spr.count,
+    tileSize: TILE_SIZE,
+    atlasSize: ATLAS_SIZE,
+    grid: ATLAS_GRID,
+    spritesPerAtlas: ATLAS_SLOTS,
+    atlases: []
+  };
+
   let atlasPixels = null;
-  let atlasIndex = -1;
+  let atlasNumber = -1;
 
   const flushAtlas = () => {
-    if (!atlasPixels || atlasIndex < 0) return;
-    const file = "atlas-" + String(atlasIndex).padStart(4, "0") + ".png";
-    fs.writeFileSync(path.join(outputDir, "sprites", file), encodePngRGBA(ATLAS_SIZE, ATLAS_SIZE, atlasPixels));
-    spriteAtlases.push(file);
+    if (!atlasPixels || atlasNumber < 0) return;
+    const file = "atlas-" + String(atlasNumber).padStart(4, "0") + ".png";
+    fs.writeFileSync(
+      path.join(spritesDir, file),
+      encodePngRGBA(ATLAS_SIZE, ATLAS_SIZE, atlasPixels)
+    );
+    atlases.push(file);
     atlasPixels = null;
   };
 
-  for (let i = 0; i < sprites.length; i++) {
-    const sprite = sprites[i];
-    const id = Number(sprite.id);
-    const slot = ((id - 1) % ATLAS_SLOTS + ATLAS_SLOTS) % ATLAS_SLOTS;
+  for (let id = 1; id <= spr.count; id++) {
     const sheet = Math.floor((id - 1) / ATLAS_SLOTS);
-    if (sheet !== atlasIndex) {
+    const slot = (id - 1) % ATLAS_SLOTS;
+
+    if (sheet !== atlasNumber) {
       flushAtlas();
-      atlasIndex = sheet;
+      atlasNumber = sheet;
       atlasPixels = new Uint8Array(ATLAS_SIZE * ATLAS_SIZE * 4);
     }
 
-    const cellX = (slot % ATLAS_GRID) * TILE_SIZE;
-    const cellY = Math.floor(slot / ATLAS_GRID) * TILE_SIZE;
-    const rgba = sprite.rgba;
-    for (let sy = 0; sy < TILE_SIZE; sy++) {
-      const dstOffset = ((cellY + sy) * ATLAS_SIZE + cellX) * 4;
-      const srcOffset = sy * TILE_SIZE * 4;
-      Buffer.from(rgba.buffer, rgba.byteOffset + srcOffset, TILE_SIZE * 4).copy(Buffer.from(atlasPixels.buffer, atlasPixels.byteOffset + dstOffset, TILE_SIZE * 4));
+    const rgba = spr.getRGBA(id);
+    if (rgba) {
+      const cellX = (slot % ATLAS_GRID) * TILE_SIZE;
+      const cellY = Math.floor(slot / ATLAS_GRID) * TILE_SIZE;
+      for (let sy = 0; sy < TILE_SIZE; sy++) {
+        const sourceStart = sy * TILE_SIZE * 4;
+        const targetStart = ((cellY + sy) * ATLAS_SIZE + cellX) * 4;
+        Buffer.from(rgba.buffer, rgba.byteOffset + sourceStart, TILE_SIZE * 4)
+          .copy(Buffer.from(atlasPixels.buffer, atlasPixels.byteOffset + targetStart, TILE_SIZE * 4));
+      }
     }
 
-    spriteManifest.sprites[id] = {
-      atlas: "sprites/" + "atlas-" + String(sheet).padStart(4, "0") + ".png",
-      frame: slot,
-      x: cellX,
-      y: cellY,
-      width: TILE_SIZE,
-      height: TILE_SIZE
-    };
-
-    if (i % 250 === 0) {
-      progress(32 + Math.round((i / sprites.length) * 18), "Gerando biblioteca visual", (i + 1) + "/" + sprites.length);
+    if (id % 500 === 0 || id === spr.count) {
+      progress(
+        20 + Math.round((id / spr.count) * 22),
+        "Gerando atlas de sprites",
+        id + "/" + spr.count
+      );
     }
   }
+
   flushAtlas();
 
-  spriteManifest.atlases = spriteAtlases.map((file) => ({
+  atlasMeta.atlases = atlases.map((file, index) => ({
+    index,
     file: "sprites/" + file,
     width: ATLAS_SIZE,
-    height: ATLAS_SIZE,
-    frames: ATLAS_SLOTS
+    height: ATLAS_SIZE
   }));
-  writeJson(path.join(outputDir, "sprites", "manifest.json"), spriteManifest);
 
-  progress(52, "Lendo mapa OTBM", path.basename(source.map));
+  writeJson(path.join(spritesDir, "manifest.json"), atlasMeta);
+
+  progress(44, "Lendo mapa OTBM", path.basename(source.map));
+
   const { OTBMReader } = await import("@v0rt4c/otbm");
-  const mapBytes = new Uint8Array(fs.readFileSync(source.map));
-  const otbm = new OTBMReader(mapBytes);
-  const root = otbm.getRootNode();
-  const tiles = otbm.getTiles();
+  const mapBuffer = new Uint8Array(fs.readFileSync(source.map));
+  const mapReader = new OTBMReader(mapBuffer);
+  const root = mapReader.getRootNode();
+  const tiles = mapReader.getTiles();
 
+  progress(50, "Montando vínculo item → sprite", otb.items.length + " itens");
   const itemVisuals = {};
-  for (const [serverId, clientId] of serverToClient.entries()) {
-    const thing = datById.get(clientId);
-    if (!thing) continue;
-    itemVisuals[serverId] = {
+
+  for (const item of otb.items) {
+    const clientId = Number(item.clientId);
+    const datItem = dat.items.get(clientId);
+    if (!datItem) continue;
+
+    itemVisuals[String(item.serverId)] = {
+      serverId: Number(item.serverId),
       clientId,
-      spriteId: thingSpriteId(thing),
-      spriteIds: Array.from(thing.spriteIds ?? []).map(Number),
-      texture: thing.texture ?? null,
-      flags: thing.flags ?? {}
+      thing: thingInfo(datItem),
+      otbFlags: Number(item.flags ?? 0)
     };
   }
+
   writeJson(path.join(outputDir, "item-visual-map.json"), itemVisuals);
 
   const floorStats = new Map();
   const chunkMap = new Map();
-  let unresolvedItems = 0;
-  let renderedItems = 0;
-
-  function getChunk(z, x, y) {
-    const cx = Math.floor(x / DEFAULT_CHUNK_SIZE);
-    const cy = Math.floor(y / DEFAULT_CHUNK_SIZE);
-    const key = z + "/" + cx + "/" + cy;
-    let chunk = chunkMap.get(key);
-    if (!chunk) {
-      chunk = { z, chunkX: cx, chunkY: cy, tiles: new Map(), tileCount: 0 };
-      chunkMap.set(key, chunk);
-    }
-    return chunk;
-  }
+  let unresolved = 0;
+  let rendered = 0;
 
   for (let i = 0; i < tiles.length; i++) {
     const tile = tiles[i];
     const x = Number(tile.realX ?? tile.x);
     const y = Number(tile.realY ?? tile.y);
     const z = Number(tile.z);
+
     if (![x, y, z].every(Number.isFinite)) continue;
 
     floorStats.set(z, (floorStats.get(z) ?? 0) + 1);
-    const chunk = getChunk(z, x, y);
+
+    const cx = Math.floor(x / CHUNK_SIZE);
+    const cy = Math.floor(y / CHUNK_SIZE);
+    const key = chunkKey(z, cx, cy);
+
+    let chunk = chunkMap.get(key);
+    if (!chunk) {
+      chunk = {
+        z,
+        chunkX: cx,
+        chunkY: cy,
+        tiles: new Map()
+      };
+      chunkMap.set(key, chunk);
+    }
+
     const tileKey = x + "," + y;
-    let tileOut = chunk.tiles.get(tileKey);
-    if (!tileOut) {
-      tileOut = {
-        x, y, z,
+    let outputTile = chunk.tiles.get(tileKey);
+
+    if (!outputTile) {
+      outputTile = {
+        x,
+        y,
+        z,
         houseId: Number(tile.houseId ?? 0),
         walkable: false,
-        hasGround: false,
         blocked: false,
+        ground: false,
         items: []
       };
-      chunk.tiles.set(tileKey, tileOut);
-      chunk.tileCount++;
+      chunk.tiles.set(tileKey, outputTile);
     }
 
     for (const child of tile.children ?? []) {
       const serverId = Number(child.id);
-      const visual = itemVisuals[serverId];
+      let visual = itemVisuals[String(serverId)];
+
+      // Fallback for malformed/incomplete OTB mappings.
       if (!visual) {
-        unresolvedItems++;
-        tileOut.items.push({ serverId, resolved: false });
+        const directDat = dat.items.get(serverId);
+        if (directDat) {
+          visual = {
+            serverId,
+            clientId: serverId,
+            thing: thingInfo(directDat),
+            otbFlags: 0
+          };
+        }
+      }
+
+      if (!visual) {
+        unresolved++;
+        outputTile.items.push({ serverId, resolved: false });
         continue;
       }
 
-      const thing = datById.get(Number(visual.clientId));
-      const spriteId = thingSpriteId(thing);
-      const sprite = spriteById.get(spriteId);
-      const hasGround = Boolean(thing?.flags?.ground);
-      const blocked = Boolean(thing?.flags?.unpassable || thing?.flags?.blockPathfinder);
+      const datItem = dat.items.get(Number(visual.clientId));
+      const flags = datItem?.flags ?? {};
+      const isGround = Boolean(flags.ground);
+      const blocked = Boolean(flags.unpassable || flags.blockPathfinder);
 
-      tileOut.items.push({
+      outputTile.items.push({
         serverId,
         clientId: Number(visual.clientId),
-        spriteId,
-        ground: hasGround,
+        spriteId: Number(datItem?.spriteIds?.[0] ?? 0),
+        width: Number(datItem?.width ?? 1),
+        height: Number(datItem?.height ?? 1),
+        ground: isGround,
         blocked
       });
 
-      if (hasGround) tileOut.hasGround = true;
-      if (blocked) tileOut.blocked = true;
-      if (sprite) renderedItems++;
+      if (isGround) outputTile.ground = true;
+      if (blocked) outputTile.blocked = true;
     }
 
-    tileOut.walkable = tileOut.hasGround && !tileOut.blocked;
+    outputTile.walkable = outputTile.ground && !outputTile.blocked;
 
-    if (i % 5000 === 0) {
-      progress(52 + Math.round((i / tiles.length) * 28), "Convertendo mapa", (i + 1) + "/" + tiles.length + " tiles");
+    if (i % 5000 === 0 || i === tiles.length - 1) {
+      progress(
+        50 + Math.round((i / Math.max(1, tiles.length)) * 26),
+        "Convertendo mapa real",
+        (i + 1) + "/" + tiles.length + " tiles"
+      );
     }
   }
 
-  progress(81, "Renderizando mapa", chunkMap.size + " chunks");
+  progress(77, "Renderizando mapa real", chunkMap.size + " chunks");
 
   const chunkIndex = [];
-  let chunkCounter = 0;
+  let index = 0;
 
   for (const [key, chunk] of [...chunkMap.entries()].sort()) {
     const [z, cx, cy] = key.split("/").map(Number);
-    const pixels = new Uint8Array(DEFAULT_CHUNK_SIZE * TILE_SIZE * DEFAULT_CHUNK_SIZE * TILE_SIZE * 4);
+    const pixels = new Uint8Array(CHUNK_SIZE * TILE_SIZE * CHUNK_SIZE * TILE_SIZE * 4);
     const orderedTiles = [...chunk.tiles.values()].sort((a, b) => a.y - b.y || a.x - b.x);
+    const canvasWidth = CHUNK_SIZE * TILE_SIZE;
 
     for (const tile of orderedTiles) {
-      const ox = (tile.x - cx * DEFAULT_CHUNK_SIZE) * TILE_SIZE;
-      const oy = (tile.y - cy * DEFAULT_CHUNK_SIZE) * TILE_SIZE;
+      const originX = (tile.x - cx * CHUNK_SIZE) * TILE_SIZE;
+      const originY = (tile.y - cy * CHUNK_SIZE) * TILE_SIZE;
+
       for (const item of tile.items) {
-        if (!item.resolved) continue;
-        const thing = datById.get(item.clientId);
-        const spriteId = Number(item.spriteId);
-        const sprite = spriteById.get(spriteId);
-        if (!sprite) continue;
-        const dx = Number(thing?.flags?.hasOffset?.offsetX ?? 0);
-        const dy = Number(thing?.flags?.hasOffset?.offsetY ?? 0);
-        blit32(pixels, DEFAULT_CHUNK_SIZE * TILE_SIZE, ox, oy, sprite, dx, dy);
+        if (!item.clientId) continue;
+        const datItem = dat.items.get(Number(item.clientId));
+        rendered += renderThingFirstFrame(
+          pixels,
+          canvasWidth,
+          originX,
+          originY,
+          datItem,
+          spr
+        );
       }
     }
 
-    const relDir = path.join(String(z), String(cx));
-    const relPng = path.join("maps", relDir, String(cy) + ".png");
-    const relJson = path.join("maps", relDir, String(cy) + ".json");
-    const pngPath = path.join(outputDir, relPng);
-    const jsonPath = path.join(outputDir, relJson);
-    ensureDir(path.dirname(pngPath));
+    const dir = path.join(mapsDirFor(outputDir, z, cx));
+    const imageFile = String(cy).padStart(5, "0") + ".png";
+    const logicFile = String(cy).padStart(5, "0") + ".json";
 
-    fs.writeFileSync(pngPath, encodePngRGBA(DEFAULT_CHUNK_SIZE * TILE_SIZE, DEFAULT_CHUNK_SIZE * TILE_SIZE, pixels));
-    writeJson(jsonPath, {
-      version: 1,
+    ensureDir(dir);
+    fs.writeFileSync(
+      path.join(dir, imageFile),
+      encodePngRGBA(canvasWidth, canvasWidth, pixels)
+    );
+
+    writeJson(path.join(dir, logicFile), {
+      schemaVersion: 1,
       type: "ShinobiMapChunk-v1",
-      z, chunkX: cx, chunkY: cy, chunkSize: DEFAULT_CHUNK_SIZE,
+      z,
+      chunkX: cx,
+      chunkY: cy,
+      chunkSize: CHUNK_SIZE,
+      tileSize: TILE_SIZE,
       tiles: orderedTiles
     });
 
     chunkIndex.push({
-      z, chunkX: cx, chunkY: cy,
-      image: relPng.replaceAll(path.sep, "/"),
-      logic: relJson.replaceAll(path.sep, "/"),
+      z,
+      chunkX: cx,
+      chunkY: cy,
+      image: cleanPath(path.relative(outputDir, path.join(dir, imageFile))),
+      logic: cleanPath(path.relative(outputDir, path.join(dir, logicFile))),
       tiles: orderedTiles.length
     });
 
-    chunkCounter++;
-    if (chunkCounter % 10 === 0) {
-      progress(81 + Math.round((chunkCounter / chunkMap.size) * 16), "Renderizando mapa", chunkCounter + "/" + chunkMap.size + " chunks");
+    index++;
+    if (index % 10 === 0 || index === chunkMap.size) {
+      progress(
+        77 + Math.round((index / Math.max(1, chunkMap.size)) * 20),
+        "Renderizando mapa real",
+        index + "/" + chunkMap.size + " chunks"
+      );
     }
   }
 
-  const floorEntries = [...floorStats.entries()].sort((a, b) => b[1] - a[1]).map(([z, tilesCount]) => ({ z, tiles: tilesCount }));
-  const recommendedFloor = floorEntries[0]?.z ?? 7;
-  const recommendedTiles = tiles.filter((t) => Number(t.z) === recommendedFloor);
-  const cx = recommendedTiles.length
-    ? recommendedTiles.reduce((sum, t) => sum + Number(t.realX ?? t.x), 0) / recommendedTiles.length
-    : 0;
-  const cy = recommendedTiles.length
-    ? recommendedTiles.reduce((sum, t) => sum + Number(t.realY ?? t.y), 0) / recommendedTiles.length
+  const floors = [...floorStats.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([z, count]) => ({ z, tiles: count }));
+
+  const recommendedFloor = floors[0]?.z ?? 7;
+  const recommendedTiles = tiles.filter((tile) => Number(tile.z) === recommendedFloor);
+
+  const averageX = recommendedTiles.length
+    ? recommendedTiles.reduce((sum, tile) => sum + Number(tile.realX ?? tile.x), 0) / recommendedTiles.length
     : 0;
 
-  let spawn = { x: Math.round(cx), y: Math.round(cy), z: recommendedFloor };
-  let bestDist = Infinity;
+  const averageY = recommendedTiles.length
+    ? recommendedTiles.reduce((sum, tile) => sum + Number(tile.realY ?? tile.y), 0) / recommendedTiles.length
+    : 0;
+
+  let spawn = {
+    x: Math.round(averageX),
+    y: Math.round(averageY),
+    z: recommendedFloor
+  };
+
+  let bestDistance = Infinity;
+
   for (const tile of recommendedTiles) {
     const x = Number(tile.realX ?? tile.x);
     const y = Number(tile.realY ?? tile.y);
-    const chunk = chunkMap.get(recommendedFloor + "/" + Math.floor(x / DEFAULT_CHUNK_SIZE) + "/" + Math.floor(y / DEFAULT_CHUNK_SIZE));
+    const cx = Math.floor(x / CHUNK_SIZE);
+    const cy = Math.floor(y / CHUNK_SIZE);
+    const chunk = chunkMap.get(chunkKey(recommendedFloor, cx, cy));
     const candidate = chunk?.tiles.get(x + "," + y);
-    if (!candidate || !candidate.walkable) continue;
-    const dist = Math.abs(x - cx) + Math.abs(y - cy);
-    if (dist < bestDist) {
-      bestDist = dist;
+
+    if (!candidate?.walkable) continue;
+
+    const distance = Math.abs(x - averageX) + Math.abs(y - averageY);
+    if (distance < bestDistance) {
+      bestDistance = distance;
       spawn = { x, y, z: recommendedFloor };
     }
   }
 
-  const manifest = {
-    version: 1,
+  const mapManifest = {
+    schemaVersion: 1,
     type: "ShinobiBasePack-v1",
     source: {
       map: path.basename(source.map),
       dat: path.basename(source.dat),
       spr: path.basename(source.spr),
       otb: path.basename(source.otb),
-      otbmBytes: mapBytes.byteLength
+      otfi: fileExists(otfiPath) ? path.basename(otfiPath) : null,
+      mapBytes: mapBuffer.byteLength,
+      sprBytes: sprBuffer.byteLength
+    },
+    client: {
+      version: versionInfo.version,
+      versionSource: versionInfo.source,
+      datSignature: versionInfo.signature,
+      sprKind: spr.kind,
+      sprSignature: typeof spr.signature === "number"
+        ? "0x" + spr.signature.toString(16).toUpperCase()
+        : spr.signature,
+      sprCount: spr.count
     },
     map: {
       width: Number(root.width),
@@ -451,38 +584,47 @@ export async function importNarutibiaBase({ sourceDir, outputDir, progress = () 
       otbmVersion: Number(root.version),
       itemMajorVersion: Number(root.itemMajorVersion),
       itemMinorVersion: Number(root.itemMinorVersion),
-      chunkSize: DEFAULT_CHUNK_SIZE,
+      chunkSize: CHUNK_SIZE,
       tileSize: TILE_SIZE,
-      floors: floorEntries,
+      floors,
       recommendedFloor,
       recommendedSpawn: spawn,
       chunks: chunkIndex,
-      unresolvedItemInstances: unresolvedItems
+      unresolvedItemInstances: unresolved
     },
     sprites: {
-      count: sprites.length,
-      atlases: spriteManifest.atlases.length,
+      count: spr.count,
+      atlases: atlases.length,
       manifest: "sprites/manifest.json"
     },
     stats: {
       otbmTiles: tiles.length,
-      renderedItemInstances: renderedItems,
-      uniqueServerIdsMapped: Object.keys(itemVisuals).length,
-      datItems: datItems.length,
-      otbItems: otbRoot.children?.length ?? 0
+      otbItems: otb.items.length,
+      datItems: dat.items.size,
+      mappedServerIds: Object.keys(itemVisuals).length,
+      renderedSpritePieces: rendered
     }
   };
 
-  writeJson(path.join(outputDir, "manifest.json"), manifest);
+  writeJson(path.join(outputDir, "manifest.json"), mapManifest);
+
   writeJson(path.join(outputDir, "source-profile.json"), {
-    dat: { items: datItems.length, signature: datRoot.signature ?? null },
+    clientVersion: versionInfo,
+    dat: dat.counts,
     otb: {
-      items: otbRoot.children?.length ?? 0,
-      major: otbRoot.itemsMajorVersion ?? null,
-      minor: otbRoot.itemsMinorVersion ?? null,
-      build: otbRoot.itemsBuildNumber ?? null
+      items: otb.items.length,
+      major: otb.itemsMajorVersion,
+      minor: otb.itemsMinorVersion,
+      build: otb.itemsBuildNumber
     },
-    spr: { signature: spr.signature ?? null, count: sprites.length },
+    spr: {
+      kind: spr.kind,
+      signature: typeof spr.signature === "number"
+        ? "0x" + spr.signature.toString(16).toUpperCase()
+        : spr.signature,
+      count: spr.count,
+      bytes: sprBuffer.byteLength
+    },
     map: {
       version: root.version,
       width: root.width,
@@ -492,6 +634,10 @@ export async function importNarutibiaBase({ sourceDir, outputDir, progress = () 
     }
   });
 
-  progress(100, "Importação concluída", "Base pronta em " + outputDir);
-  return manifest;
+  progress(100, "Importação concluída", "Base gráfica pronta");
+  return mapManifest;
+}
+
+function mapsDirFor(outputDir, z, cx) {
+  return path.join(outputDir, "maps", String(z), String(cx));
 }
