@@ -1,0 +1,16 @@
+{
+  "base":[
+    {"id":"ninjutsu","label":"Ninjutsu","group":"combat","description":"Potência e especialização de técnicas de ninjutsu."},
+    {"id":"taijutsu","label":"Taijutsu","group":"combat","description":"Potência de técnicas corporais."},
+    {"id":"bukijutsu","label":"Bukijutsu","group":"combat","description":"Proficiência com armas e técnicas armadas."},
+    {"id":"genjutsu","label":"Genjutsu","group":"combat","description":"Potência e controle de ilusões."},
+    {"id":"agilidade","label":"Agilidade","group":"core","description":"Velocidade, esquiva e iniciativa."},
+    {"id":"selo","label":"Selo","group":"core","description":"Controle de selos e execução técnica."},
+    {"id":"forca","label":"Força","group":"core","description":"Potência física."},
+    {"id":"energia","label":"Energia","group":"resource","description":"Capacidade geral de energia."},
+    {"id":"inteligencia","label":"Inteligência","group":"core","description":"Capacidade de análise e manipulação técnica."},
+    {"id":"resistencia","label":"Resistência","group":"core","description":"Mitigação de dano e durabilidade."}
+  ],
+  "derived":["concentracao","conviccao","determinacao","percepcao"],
+  "resources":["vida","chakra","stamina"]
+}
