@@ -1,0 +1,35 @@
+name: Map and Asset Tooling
+
+on:
+  push:
+    branches: ["map-foundation-0.2"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  tooling:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm install
+
+      - name: Syntax check import tools
+        shell: bash
+        run: |
+          node --check tools/map/inspect-otbm.mjs
+          node --check tools/map/export-shinobi-chunks.mjs
+          node --check tools/assets/inspect-client.mjs
+          node --check tools/assets/extract-spr.mjs
+          node --check tools/assets/import-source-set.mjs
+
+      - name: Project tests
+        run: npm run test
+
+      - name: Project build
+        run: npm run build
