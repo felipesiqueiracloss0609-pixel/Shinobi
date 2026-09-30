@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - desktop-exe-0.3
+      - base-import-client-0.4
   workflow_dispatch:
 
 permissions:
