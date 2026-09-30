@@ -1,0 +1,8 @@
+{
+  "modes":[
+    {"id":"sage_toad","label":"Mode Sennin — Sapos","requiredInvocationFamily":"sapo","bonuses":{"ninjutsu":4,"selo":4,"agilidade":8,"resistencia":12},"exclusiveWith":["chakra_gates","cursed_seal"]},
+    {"id":"sage_snake","label":"Mode Sennin — Cobras","requiredInvocationFamily":"cobra","bonuses":{"genjutsu":4,"selo":4,"agilidade":8,"resistencia":12},"exclusiveWith":["chakra_gates","cursed_seal"]},
+    {"id":"sage_slug","label":"Mode Sennin — Lesmas","requiredInvocationFamily":"lesma","bonuses":{"taijutsu":4,"selo":4,"agilidade":8,"resistencia":12},"exclusiveWith":["chakra_gates","cursed_seal"]}
+  ],
+  "sourceNote":"A referência histórica define três tipos de Mode Sennin, com invocação específica como requisito, e incompatibilidade com Portões de Chakra e Selo Amaldiçoado. Bônus numéricos do protótipo são próprios."
+}

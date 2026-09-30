@@ -1,0 +1,13 @@
+{
+  "sourceModel":"Naruto Game Manual 2014 + current public Naruto Game structure",
+  "baseAttributes":["ninjutsu","taijutsu","bukijutsu","genjutsu","agilidade","selo","forca","energia","inteligencia","resistencia"],
+  "derivedAttributes":["concentracao","conviccao","determinacao","percepcao"],
+  "resources":["vida","chakra","stamina"],
+  "classes":["taijutsu","ninjutsu","genjutsu","bukijutsu"],
+  "maxElements":3,
+  "elementAdvantages":{"katon":{"fuuton":1.5,"suiton":0.5}},
+  "paths":{"clan":"exclusive_family","chakra_gates":"exclusive_family","sage_mode":"exclusive_family","cursed_seal":"exclusive_family","summon":"support"},
+  "jutsuRequirementFields":["level","grade","classId","attributes","elements"],
+  "jutsuCombatFields":["power","accuracy","critChance","cooldownMs","durationMs","cost"],
+  "longTermSystems":["talents","clans","gates","invocations","sage_mode","cursed_seal","teams","organizations","village","story","achievements"]
+}

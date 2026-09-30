@@ -1,0 +1,10 @@
+{
+  "grades":[
+    {"id":"academy","label":"Acadêmico","order":0,"unlocks":["tutorial","village_core"]},
+    {"id":"genin","label":"Genin","order":1,"levelMin":5,"unlocks":["village_map","world_map"]},
+    {"id":"chunin","label":"Chūnin","order":2,"levelMin":15,"unlocks":["advanced_missions","team_content"]},
+    {"id":"jonin","label":"Jōnin","order":3,"levelMin":30,"unlocks":["advanced_jutsu","elite_maps"]}
+  ],
+  "talentPoints":{"initial":0,"gainPerLevel":1,"targetLongTerm":40},
+  "jutsuUpgradeSlots":[{"slot":1,"unlockHours":6},{"slot":2,"unlockHours":12},{"slot":3,"unlockHours":18},{"slot":4,"unlockHours":24},{"slot":5,"unlockHours":32}]
+}

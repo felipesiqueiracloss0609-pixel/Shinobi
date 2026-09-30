@@ -1,0 +1,2 @@
+import{describe,it,expect}from"vitest";import{MonsterAI}from"../src/engine/ai/MonsterAI";
+describe("MonsterAI",()=>{it("attacks when adjacent",()=>expect(new MonsterAI({width:64,height:48}).decide({grid:{x:5,y:5},alive:true},{x:6,y:5},()=>true,()=>false).state).toBe("attack"));it("chases nearby targets",()=>expect(new MonsterAI({width:64,height:48}).decide({grid:{x:5,y:5},alive:true},{x:8,y:5},()=>true,()=>false).state).toBe("chase"))});

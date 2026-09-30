@@ -1,0 +1,9 @@
+{
+  "steps":[
+    {"id":"talk_mei","label":"Fale com Mei","target":"mei"},
+    {"id":"train","label":"Treine um atributo","target":"training"},
+    {"id":"learn_jutsu","label":"Aprenda seu primeiro jutsu","target":"jutsu"},
+    {"id":"hunt_slimes","label":"Derrote 5 Gosmas","target":"slimes","count":5},
+    {"id":"talk_toma","label":"Fale com Toma","target":"toma"}
+  ]
+}

@@ -1,0 +1,2 @@
+import{describe,it,expect}from"vitest";import{addItem,equipItem,hasItem}from"../src/game/items/Inventory";
+describe("Inventory",()=>{it("adds and equips a kunai",()=>{const s:any={inventory:[],equipment:{}};addItem(s,"kunai");expect(hasItem(s,"kunai")).toBe(true);expect(equipItem(s,"kunai")).toBe(true);expect(s.equipment.weapon).toBe("kunai")})});

@@ -1,0 +1,20 @@
+{
+  "maxNatureTypesPerCharacter":3,
+  "elements":[
+    {"id":"katon","label":"Katon","display":"Fogo","tier":"basic"},
+    {"id":"suiton","label":"Suiton","display":"Água","tier":"basic"},
+    {"id":"fuuton","label":"Fuuton","display":"Vento","tier":"basic"},
+    {"id":"doton","label":"Doton","display":"Terra","tier":"basic"},
+    {"id":"raiton","label":"Raiton","display":"Raio","tier":"basic"},
+    {"id":"mokuton","label":"Mokuton","display":"Madeira","tier":"derived","requires":["suiton","doton"]},
+    {"id":"shakuton","label":"Shakuton","display":"Calor","tier":"derived","requires":["katon","fuuton"]}
+  ],
+  "matchups":{
+    "katon":{"fuuton":1.5,"suiton":0.5},
+    "fuuton":{"raiton":1.5,"katon":0.5},
+    "suiton":{"katon":1.5,"doton":0.5},
+    "doton":{"raiton":1.5,"suiton":0.5},
+    "raiton":{"suiton":1.5,"doton":0.5}
+  },
+  "defaultMultiplier":1.0
+}

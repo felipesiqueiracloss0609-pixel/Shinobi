@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "id": "kage_no_sato_01",
+  "name": "Kage no Sato — Fronte Sul",
+  "width": 64,
+  "height": 48,
+  "ground": [
+    "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggw",
+    "wggwwwwwwwwwwwwwwwwwwggggggggggggggggggggggggggggggggggggggggggw",
+    "wggwggggggggggggggggwggggggggggggggggggggggggggggggggggggggggggw",
+    "wggwggggggggggggggggwggggggggggggggggggggggggggggggggggggggggggw",
+    "wggwggggggggggggggggwggggggggggggggggggggggggggggggggggggggggggw",
+    "wggwggggggggggggggggwggggggggggggggggggggggggggggggggggggggggggw",
+    "wggwggggggggggggggggwggggggggggggggggggggggggggggggggggggggggggw",
+    "wggwggggggggggggggggwggggggggggggggggggggggggggggggggggggggggggw",
+    "wggwddddddddddddddddwggggggggggggggggggggggggggggggggggggggggggw",
+    "wggwddddddddddddddddwggggggggggggggggggggggggggggggggggggggggggw",
+    "wggwggggggggggggggggwggggggggggggggggggggggggggggggggggggggggggw",
+    "wggwggggggggggggggggwggggggggggggggggggggggggggggggggggggggggggw",
+    "wggwggggggggggggggggwggggggggggggggggggggggggggggggggggggggggggw",
+    "wggwggggggggggggggggwggggggggggggggggggggggggggggggggggggggggggw",
+    "wggwggggggggggggggggwggggggggggggggggggggggggggggggggggggggggggw",
+    "wggwggggggggggggggggwggggggggggggggggggggggggggggggggggggggggggw",
+    "wggwwwwwwwwwwwwwwwwwwggggggggggggggggggggggggggggssssssssssssssw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggssssssssssssssw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggssssssssssssssw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggssssssssssssssw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggssssssssssssssw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggssssssssssssssw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggssssssssssssssw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggssssssssssssssw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggssssssssssssssw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggssssssssssssssw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggssssssssssssssw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggssssssssssssssw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggssssssssssssssw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggssssssssssssssw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggssssssssssssssw",
+    "wggggggggggggggggggggggggggggggggggggggggggggggggssssssssssssssw",
+    "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww"
+  ],
+  "blockedRects": [
+    {
+      "x": 0,
+      "y": 0,
+      "width": 64,
+      "height": 1
+    },
+    {
+      "x": 0,
+      "y": 47,
+      "width": 64,
+      "height": 1
+    },
+    {
+      "x": 0,
+      "y": 0,
+      "width": 1,
+      "height": 48
+    },
+    {
+      "x": 63,
+      "y": 0,
+      "width": 1,
+      "height": 48
+    },
+    {
+      "x": 3,
+      "y": 16,
+      "width": 18,
+      "height": 1
+    },
+    {
+      "x": 3,
+      "y": 31,
+      "width": 18,
+      "height": 1
+    },
+    {
+      "x": 3,
+      "y": 16,
+      "width": 1,
+      "height": 16
+    },
+    {
+      "x": 20,
+      "y": 16,
+      "width": 1,
+      "height": 16
+    }
+  ],
+  "objects": [
+    {
+      "type": "npc",
+      "x": 5,
+      "y": 24,
+      "texture": "mei"
+    },
+    {
+      "type": "npc",
+      "x": 14,
+      "y": 24,
+      "texture": "toma"
+    },
+    {
+      "type": "npc",
+      "x": 28,
+      "y": 22,
+      "texture": "sage"
+    },
+    {
+      "type": "structure",
+      "x": 55,
+      "y": 35,
+      "texture": "ruin_gate",
+      "width": 64,
+      "height": 64
+    }
+  ]
+}

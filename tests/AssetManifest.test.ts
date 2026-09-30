@@ -1,0 +1,2 @@
+import{describe,it,expect}from"vitest";import{ASSETS}from"../src/engine/assets/AssetManifest";
+describe("Asset manifest",()=>{it("has unique ids",()=>{const ids=ASSETS.map(a=>a.id);expect(new Set(ids).size).toBe(ids.length)});it("uses 32px player frames",()=>{const p=ASSETS.find(a=>a.id==="player_s_0");expect(p?.width).toBe(32);expect(p?.height).toBe(32)})});

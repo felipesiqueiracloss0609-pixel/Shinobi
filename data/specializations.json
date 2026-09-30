@@ -1,0 +1,14 @@
+{
+  "mutualExclusions":[
+    ["clan","chakra_gates"],
+    ["sage_mode","chakra_gates"],
+    ["sage_mode","cursed_seal"]
+  ],
+  "paths":{
+    "clan":{"label":"Clã","maxActive":1},
+    "chakra_gates":{"label":"Portões de Chakra","maxActive":1},
+    "cursed_seal":{"label":"Selo Amaldiçoado","maxActive":1},
+    "sage_mode":{"label":"Mode Sennin","maxActive":1},
+    "summon":{"label":"Invocação","maxActive":1}
+  }
+}
