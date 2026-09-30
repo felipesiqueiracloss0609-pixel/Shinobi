@@ -1,9 +1,22 @@
 {
-  "name":"shinobi-no-vale",
-  "version":"0.1.1",
-  "private":true,
-  "type":"module",
-  "scripts":{"dev":"vite","build":"tsc -b && vite build","test":"vitest run","preview":"vite preview"},
-  "dependencies":{"phaser":"4.2.1"},
-  "devDependencies":{"typescript":"5.9.2","vite":"7.1.7","vitest":"3.2.4"}
+  "name": "shinobi-no-vale",
+  "version": "0.1.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "test": "vitest run",
+    "preview": "vite preview",
+    "map:inspect": "node tools/map/inspect-otbm.mjs"
+  },
+  "dependencies": {
+    "phaser": "4.2.1"
+  },
+  "devDependencies": {
+    "typescript": "5.9.2",
+    "vite": "7.1.7",
+    "vitest": "3.2.4",
+    "@v0rt4c/otbm": "0.2.0"
+  }
 }
