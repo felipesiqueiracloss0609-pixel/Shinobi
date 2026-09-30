@@ -26,6 +26,14 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
+      - name: Validate import pipeline syntax
+        run: |
+          node --check electron/main.cjs
+          node --check electron/preload.cjs
+          node --check electron/legacy-parsers.mjs
+          node --check electron/base-importer.mjs
+          node --check tools/base/import-narutibia.mjs
+
       - name: Validate gameplay tests
         run: npm run test
 
