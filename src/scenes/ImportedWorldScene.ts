@@ -112,7 +112,6 @@ export class ImportedWorldScene extends Phaser.Scene {
       this.status.destroy();
       this.ready = true;
       this.updateHud();
-      this.showGalleryHint();
     } catch (error) {
       this.status.setText(
         "Não foi possível abrir a base gráfica.\n\n" +
@@ -232,10 +231,6 @@ export class ImportedWorldScene extends Phaser.Scene {
     );
   }
 
-  private showGalleryHint() {
-    // Gallery is toggled from update using the dedicated G key.
-  }
-
   private async toggleGallery() {
     if (this.gallery) {
       this.gallery.destroy();
@@ -261,15 +256,18 @@ export class ImportedWorldScene extends Phaser.Scene {
     const spriteManifestUrl = await window.shinobiBase.assetUrl("sprites/manifest.json");
     const response = await fetch(spriteManifestUrl);
     const spriteManifest = await response.json() as {
+      count: number;
+      atlasSize: number;
+      grid: number;
+      spritesPerAtlas: number;
       atlases: { file: string }[];
-      sprites: Record<string, { atlas: string; frame: number; x: number; y: number; width: number; height: number }>;
     };
 
-    const ids = Object.keys(spriteManifest.sprites).map(Number).sort((a, b) => a - b).slice(1, 25);
+    const ids = Array.from({ length: Math.min(24, spriteManifest.count) }, (_, index) => index + 1);
     const atlasKeys = new Set<string>();
     for (const id of ids) {
-      const sprite = spriteManifest.sprites[id];
-      atlasKeys.add(sprite.atlas);
+      const atlasIndex = Math.floor((id - 1) / spriteManifest.spritesPerAtlas);
+      atlasKeys.add(spriteManifest.atlases[atlasIndex].file);
     }
 
     for (const atlas of atlasKeys) {
