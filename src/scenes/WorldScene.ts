@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import mapData from "../../data/maps/kage_no_sato_01.json";
 import {GridMap} from "../engine/world/GridMap";
+import {InputManager} from "../engine/input/InputManager";
 import {buildGrid} from "../engine/world/MapLoader";
 import {WorldRenderer} from "../engine/world/WorldRenderer";
 import {MonsterAI} from "../engine/ai/MonsterAI";
@@ -59,7 +60,7 @@ export class WorldScene extends Phaser.Scene{
   const defaults=this.defaultSnapshot();
   this.session=new GameSession(defaults,new BrowserStorage());
   this.session.load();
-  const s=this.session.snapshot;
+  const s=this.session.snapshot;this.actionInput=new InputManager(this);
 
   this.actionInput=new InputManager(this);
   this.player=new Player(this,(x,y)=>this.grid.isWalkable(x,y)&&!this.mobAt(x,y));
