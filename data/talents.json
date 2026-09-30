@@ -1,0 +1,11 @@
+{
+  "totalLongTermPoints":40,
+  "rules":{"gainPerLevel":1,"mutuallyExclusiveNodes":true},
+  "prototypeNodes":[
+    {"id":"iron_will","label":"Vontade de Ferro","bonus":{"resistencia":2}},
+    {"id":"chakra_flow","label":"Fluxo de Chakra","bonus":{"energia":2}},
+    {"id":"swift_hands","label":"Mãos Rápidas","bonus":{"agilidade":2}},
+    {"id":"keen_mind","label":"Mente Aguçada","bonus":{"inteligencia":2}},
+    {"id":"seal_mastery","label":"Domínio de Selos","bonus":{"selo":2}}
+  ]
+}
