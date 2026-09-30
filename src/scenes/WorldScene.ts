@@ -60,8 +60,6 @@ export class WorldScene extends Phaser.Scene{
   this.session=new GameSession(defaults,new BrowserStorage());
   this.session.load();
   const s=this.session.snapshot;this.actionInput=new InputManager(this);
-
-  this.actionInput=new InputManager(this);
   this.player=new Player(this,(x,y)=>this.grid.isWalkable(x,y)&&!this.mobAt(x,y));
   this.player.grid.x=s.position.x;
   this.player.grid.y=s.position.y;
