@@ -9,7 +9,10 @@
     "test": "vitest run",
     "preview": "vite preview",
     "map:inspect": "node tools/map/inspect-otbm.mjs",
-    "map:export": "node tools/map/export-shinobi-chunks.mjs"
+    "map:export": "node tools/map/export-shinobi-chunks.mjs",
+    "assets:inspect": "node tools/assets/inspect-client.mjs",
+    "assets:extract-spr": "node tools/assets/extract-spr.mjs",
+    "assets:import-source-set": "node tools/assets/import-source-set.mjs"
   },
   "dependencies": {
     "phaser": "4.2.1"
@@ -18,6 +21,9 @@
     "typescript": "5.9.2",
     "vite": "7.1.7",
     "vitest": "3.2.4",
-    "@v0rt4c/otbm": "0.2.0"
+    "@v0rt4c/otbm": "0.2.0",
+    "@v0rt4c/spr": "0.1.1",
+    "@v0rt4c/otb": "0.1.0",
+    "@v0rt4c/dat": "0.2.0"
   }
 }
