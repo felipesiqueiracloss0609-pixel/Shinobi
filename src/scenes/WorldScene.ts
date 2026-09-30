@@ -41,7 +41,7 @@ export class WorldScene extends Phaser.Scene{
  }
  private spawnMob(name:string,x:number,y:number,element:string,hp:number){const key=name==="Gosma"?"slime":name==="Lobo"?"wolf":name==="Golem"?"golem":"guardian";const s=this.add.sprite(x*32+16,y*32+16,key).setDepth(70+y);if(name==="Guardião")s.setDisplaySize(64,64);this.mobs.push({sprite:s,grid:{x,y},hp,max:hp,atk:name==="Guardião"?18:6,element,name,xp:name==="Guardião"?250:name==="Golem"?100:25,alive:true})}
  private mobAt(x:number,y:number){return this.mobs.some(m=>m.alive&&m.grid.x===x&&m.grid.y===y)}
- private tryStep(dx:number,dy:number){if(!this.player.isMoving())this.player.getInput();if(dx!==0||dy!==0)this.player["begin"]?.(dx,dy)}
+ private tryStep(dx:number,dy:number){if(!this.player.isMoving()&&(dx!==0||dy!==0))this.player.requestStep(dx,dy)}
  private nearest(range:number){return this.mobs.filter(m=>m.alive&&this.distance(m)<=range).sort((a,b)=>this.distance(a)-this.distance(b))[0]}
  private distance(m:Mob){return Math.abs(m.grid.x-this.player.grid.x)+Math.abs(m.grid.y-this.player.grid.y)}
  private attack(){if(this.attackCooldown>0)return;const m=this.target??this.nearest(1);if(!m)return this.message("Nenhum alvo adjacente.");const res=this.resolver.resolve(this.session.snapshot.sheet,{defense:4,element:m.element},15,.95,.08,this.activeElement);this.attackCooldown=650;if(!res.hit){this.message("Ataque básico errou.");return}m.hp-=res.damage;this.addEffect(m,"fx_hit");this.message("Ataque • "+res.damage+" dano"+(res.critical?" • CRÍTICO":""));if(m.hp<=0)this.defeat(m)}
