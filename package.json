@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "test": "vitest run",
     "preview": "vite preview",
-    "map:inspect": "node tools/map/inspect-otbm.mjs"
+    "map:inspect": "node tools/map/inspect-otbm.mjs",
+    "map:export": "node tools/map/export-shinobi-chunks.mjs"
   },
   "dependencies": {
     "phaser": "4.2.1"
