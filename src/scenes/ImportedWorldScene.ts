@@ -42,7 +42,8 @@ interface LoadedChunk {
 
 export class ImportedWorldScene extends Phaser.Scene {
   private manifest!: BaseManifest;
-  private input!: InputManager;
+  private actionInput!: InputManager;
+  private galleryKey!: Phaser.Input.Keyboard.Key;
   private player!: Phaser.GameObjects.Sprite;
   private gridX = 0;
   private gridY = 0;
@@ -77,7 +78,8 @@ export class ImportedWorldScene extends Phaser.Scene {
       this.gridX = this.manifest.map.recommendedSpawn.x;
       this.gridY = this.manifest.map.recommendedSpawn.y;
 
-      this.input = new InputManager(this);
+      this.actionInput = new InputManager(this);
+      this.galleryKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.G);
       this.cameras.main.setBounds(
         0,
         0,
@@ -231,7 +233,7 @@ export class ImportedWorldScene extends Phaser.Scene {
   }
 
   private showGalleryHint() {
-    this.input?.keys && this.input.keys.up && this.input.keys.down && this.input.keys.left && this.input.keys.right;
+    // Gallery is toggled from update using the dedicated G key.
   }
 
   private async toggleGallery() {
@@ -310,13 +312,14 @@ export class ImportedWorldScene extends Phaser.Scene {
   }
 
   update(_time: number, dt: number) {
-    if (!this.ready || !this.input) return;
+    if (!this.ready || !this.actionInput) return;
     this.moveCooldown = Math.max(0, this.moveCooldown - dt);
 
     if (!this.player || !this.player.active) return;
-    if (this.input.isJustDown("up")) this.tryMove(0, -1);
-    else if (this.input.isJustDown("down")) this.tryMove(0, 1);
-    else if (this.input.isJustDown("left")) this.tryMove(-1, 0);
-    else if (this.input.isJustDown("right")) this.tryMove(1, 0);
+    if (Phaser.Input.Keyboard.JustDown(this.galleryKey)) this.toggleGallery();
+    if (this.actionInput.isJustDown("up")) this.tryMove(0, -1);
+    else if (this.actionInput.isJustDown("down")) this.tryMove(0, 1);
+    else if (this.actionInput.isJustDown("left")) this.tryMove(-1, 0);
+    else if (this.actionInput.isJustDown("right")) this.tryMove(1, 0);
   }
 }
