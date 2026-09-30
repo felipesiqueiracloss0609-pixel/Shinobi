@@ -1,2 +1,37 @@
 import Phaser from "phaser";
-export class Player extends Phaser.Physics.Arcade.Sprite{private cursors:Phaser.Types.Input.Keyboard.CursorKeys;private keys:any;constructor(scene:Phaser.Scene,x:number,y:number){super(scene,x,y,"player_walk",0);scene.add.existing(this);scene.physics.add.existing(this);this.setOrigin(.5,.78);this.cursors=scene.input.keyboard!.createCursorKeys();this.keys=scene.input.keyboard!.addKeys("W,A,S,D,SPACE");scene.anims.create({key:"walk-s",frames:scene.anims.generateFrameNumbers("player_walk",{start:0,end:3}),frameRate:8,repeat:-1});scene.anims.create({key:"walk-n",frames:scene.anims.generateFrameNumbers("player_walk",{start:4,end:7}),frameRate:8,repeat:-1});scene.anims.create({key:"walk-e",frames:scene.anims.generateFrameNumbers("player_walk",{start:8,end:11}),frameRate:8,repeat:-1});scene.anims.create({key:"walk-w",frames:scene.anims.generateFrameNumbers("player_walk",{start:12,end:15}),frameRate:8,repeat:-1})}preUpdate(t:number,dt:number){super.preUpdate(t,dt);let vx=0,vy=0;if(this.cursors.left?.isDown||this.keys.A.isDown)vx=-110;if(this.cursors.right?.isDown||this.keys.D.isDown)vx=110;if(this.cursors.up?.isDown||this.keys.W.isDown)vy=-110;if(this.cursors.down?.isDown||this.keys.S.isDown)vy=110;this.setVelocity(vx,vy);if(vx||vy){const key=Math.abs(vx)>Math.abs(vy)?(vx>0?"walk-e":"walk-w"):(vy>0?"walk-s":"walk-n");if(this.anims.currentAnim?.key!==key)this.play(key,true)}else this.stop()}}
+import {InputManager} from "../engine/input/InputManager";
+import {AnimationManager} from "../engine/animation/AnimationManager";
+
+export class Player extends Phaser.GameObjects.Sprite{
+  readonly grid={x:8,y:24};
+  private moving=false;private targetX=0;private targetY=0;private readonly speed=210;private readonly input:InputManager;
+  constructor(scene:Phaser.Scene,private readonly canMove:(x:number,y:number)=>boolean){
+    super(scene,8*32+16,24*32+16,"player_s_0");
+    scene.add.existing(this);this.setOrigin(.5,.78).setDepth(100);
+    this.input=new InputManager(scene);new AnimationManager(scene).createPlayerWalk();
+  }
+  private begin(dx:number,dy:number){
+    if(this.moving)return;const nx=this.grid.x+dx,ny=this.grid.y+dy;if(!this.canMove(nx,ny))return;
+    this.grid.x=nx;this.grid.y=ny;this.targetX=nx*32+16;this.targetY=ny*32+16;this.moving=true;
+    const dir=Math.abs(dx)>Math.abs(dy)?(dx>0?"e":"w"):(dy>0?"s":"n");this.play("player-walk-"+dir,true);
+  }
+  preUpdate(time:number,delta:number){
+    super.preUpdate(time,delta);
+    if(!this.moving){
+      if(this.input.isJustDown("up"))this.begin(0,-1);
+      else if(this.input.isJustDown("down"))this.begin(0,1);
+      else if(this.input.isJustDown("left"))this.begin(-1,0);
+      else if(this.input.isJustDown("right"))this.begin(1,0);
+    }
+    if(this.moving){
+      const step=this.speed*delta/1000;
+      const nx=Math.abs(this.targetX-this.x)<=step?this.targetX:this.x+Math.sign(this.targetX-this.x)*step;
+      const ny=Math.abs(this.targetY-this.y)<=step?this.targetY:this.y+Math.sign(this.targetY-this.y)*step;
+      this.setPosition(nx,ny);
+      if(nx===this.targetX&&ny===this.targetY){this.moving=false;this.stop();}
+    }
+    this.setDepth(this.grid.y*10+20);
+  }
+  isMoving(){return this.moving}
+  getInput(){return this.input}
+}
