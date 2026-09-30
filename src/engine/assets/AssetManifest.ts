@@ -5,7 +5,7 @@ export const ASSETS:AssetManifestEntry[]=[
 {id:"dirt",path:"assets/tiles/dirt.svg",kind:"svg",required:true},{id:"stone",path:"assets/tiles/stone.svg",kind:"svg",required:true},
 {id:"wall",path:"assets/tiles/wall.svg",kind:"svg",required:true},{id:"roof",path:"assets/tiles/roof.svg",kind:"svg",required:true},{id:"door",path:"assets/tiles/door.svg",kind:"svg",required:true},
 {id:"tree",path:"assets/tiles/tree.svg",kind:"svg",required:true},{id:"bush",path:"assets/tiles/bush.svg",kind:"svg",required:true},
-{id:"ruin_gate",path:"assets/tiles/ruin_gate.svg",kind:"svg",required:true},{id:"mei",path:"assets/npcs/mei.svg",kind:"svg",required:true},{id:"toma",path:"assets/npcs/toma.svg",kind:"svg",required:true},
+{id:"ruin_gate",path:"assets/tiles/ruin_gate.svg",kind:"svg",required:true},{id:"mei",path:"assets/npcs/mei.svg",kind:"svg",required:true},{id:"toma",path:"assets/npcs/toma.svg",kind:"svg",required:true},{id:"sage",path:"assets/npcs/sage.svg",kind:"svg",required:true},
 {id:"slime",path:"assets/creatures/slime.svg",kind:"svg",required:true},{id:"wolf",path:"assets/creatures/wolf.svg",kind:"svg",required:true},{id:"golem",path:"assets/creatures/golem.svg",kind:"svg",required:true},{id:"guardian",path:"assets/creatures/guardian.svg",kind:"svg",required:true},
 {id:"kunai",path:"assets/items/kunai.svg",kind:"svg",required:true},{id:"potion",path:"assets/items/potion.svg",kind:"svg",required:true},
 {id:"fx_katon",path:"assets/effects/katon.svg",kind:"svg",required:true},{id:"fx_hit",path:"assets/effects/hit.svg",kind:"svg",required:true},
