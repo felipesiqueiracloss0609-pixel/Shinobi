@@ -1,0 +1,2 @@
+import type {SpriteDefinition} from "./AssetRegistry";
+export function validateSprite(def:SpriteDefinition){if(def.frameWidth!==32||def.frameHeight!==32)throw new Error(def.id+" must use 32x32 logical frames");if(def.frames<1||def.directions<1)throw new Error(def.id+" invalid frame/direction count");return true}
