@@ -10,7 +10,7 @@ export class Player extends Phaser.GameObjects.Sprite{
     scene.add.existing(this);this.setOrigin(.5,.78).setDepth(100);
     this.input=new InputManager(scene);new AnimationManager(scene).createPlayerWalk();
   }
-  private begin(dx:number,dy:number){
+  public requestStep(dx:number,dy:number){
     if(this.moving)return;const nx=this.grid.x+dx,ny=this.grid.y+dy;if(!this.canMove(nx,ny))return;
     this.grid.x=nx;this.grid.y=ny;this.targetX=nx*32+16;this.targetY=ny*32+16;this.moving=true;
     const dir=Math.abs(dx)>Math.abs(dy)?(dx>0?"e":"w"):(dy>0?"s":"n");this.play("player-walk-"+dir,true);
@@ -18,10 +18,10 @@ export class Player extends Phaser.GameObjects.Sprite{
   preUpdate(time:number,delta:number){
     super.preUpdate(time,delta);
     if(!this.moving){
-      if(this.input.isJustDown("up"))this.begin(0,-1);
-      else if(this.input.isJustDown("down"))this.begin(0,1);
-      else if(this.input.isJustDown("left"))this.begin(-1,0);
-      else if(this.input.isJustDown("right"))this.begin(1,0);
+      if(this.input.isJustDown("up"))this.requestStep(0,-1);
+      else if(this.input.isJustDown("down"))this.requestStep(0,1);
+      else if(this.input.isJustDown("left"))this.requestStep(-1,0);
+      else if(this.input.isJustDown("right"))this.requestStep(1,0);
     }
     if(this.moving){
       const step=this.speed*delta/1000;
