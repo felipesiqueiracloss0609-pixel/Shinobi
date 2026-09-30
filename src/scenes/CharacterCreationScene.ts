@@ -28,7 +28,7 @@ export class CharacterCreationScene extends Phaser.Scene{
   const cls=this.selectedClass;
   const base={ninjutsu:5,taijutsu:5,bukijutsu:5,genjutsu:5,agilidade:5,selo:5,forca:5,energia:5,inteligencia:5,resistencia:5};
   const primary=cls==="ninjutsu"?"ninjutsu":cls==="taijutsu"?"taijutsu":cls==="genjutsu"?"genjutsu":"bukijutsu";base[primary]+=3;
-  const snap:SessionSnapshot={sheet:{level:1,xp:0,xpToNext:100,trainingPoints:3,talentPoints:0,attributes:base,resources:{vida:100,chakra:70,stamina:70},build:{grade:"academy",classId:cls,elements:[...this.selected]},knownJutsus:[],equipment:{},inventory:["kunai","potion"]},position:{x:8,y:24},quests:{slimes:0,ruinsAccepted:false,step:0},inventory:["kunai","potion"]};
+  const snap:SessionSnapshot={sheet:{level:1,xp:0,xpToNext:100,trainingPoints:3,talentPoints:0,attributes:base,resources:{vida:100,chakra:70,stamina:70},build:{grade:"academy",classId:cls,elements:[...this.selected]},knownJutsus:[],equipment:{}},position:{x:8,y:24},quests:{slimes:0,ruinsAccepted:false,step:0},inventory:["kunai","potion"]};
   new BrowserStorage().setItem("shinobi-engine-0.1.1",JSON.stringify(snap));this.scene.start("WorldScene");
  }
 }
