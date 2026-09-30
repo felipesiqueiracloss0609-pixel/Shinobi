@@ -13,8 +13,9 @@ export class BootScene extends Phaser.Scene{
  }
  create(){
   const missing=this.assets.missingRequired();
-  if(missing.length){this.add.text(250,335,"Assets ausentes: "+missing.join(", "),{fontFamily:"monospace",fontSize:"9px",color:"#ef7777"});return}
-  const storage=new BrowserStorage();this.registry.set("assetReport",this.assets.report());
-  this.scene.start(storage.getItem("shinobi-engine-0.1.1")?"WorldScene":"CharacterCreationScene");
+  if(missing.length){this.add.text(250,335,"ERRO DE ASSET: "+missing.join(", "),{fontFamily:"monospace",fontSize:"9px",color:"#ef7777"});return}
+  const storage=new BrowserStorage();
+  this.registry.set("assetReport",this.assets.report());
+  this.scene.start(storage.getItem("shinobi-engine-0.1.1-v1")?"WorldScene":"CharacterCreationScene");
  }
 }

@@ -1,10 +1,8 @@
 import Phaser from "phaser";
-import type {GridMap} from "./GridMap";
+import type {MapDefinition} from "./MapDefinition";
+import {tileAt} from "./MapLoader";
+const MAP_TILE_TEXTURE:Record<string,string>={g:"grass",a:"grass_alt",d:"dirt",s:"stone",w:"wall"};
 export class WorldRenderer{
- constructor(private readonly scene:Phaser.Scene,private readonly grid:GridMap){}
- draw(tile:(x:number,y:number)=>string){
-  for(let y=0;y<this.grid.height;y++)for(let x=0;x<this.grid.width;x++){
-   this.scene.add.image(x*32+16,y*32+16,tile(x,y)).setDepth(0);
-  }
- }
+ constructor(private readonly scene:Phaser.Scene,private readonly map:MapDefinition){}
+ draw(){for(let y=0;y<this.map.height;y++)for(let x=0;x<this.map.width;x++){this.scene.add.image(x*32+16,y*32+16,MAP_TILE_TEXTURE[tileAt(this.map,x,y)]??"grass").setDepth(0);}}
 }
