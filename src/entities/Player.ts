@@ -4,7 +4,7 @@ import {AnimationManager} from "../engine/animation/AnimationManager";
 
 export class Player extends Phaser.GameObjects.Sprite{
   readonly grid={x:8,y:24};
-  private moving=false;private targetX=0;private targetY=0;private readonly speed=210;private readonly input:InputManager;
+  private moving=false;private targetX=0;private targetY=0;private readonly speed=210;private readonly inputManager:InputManager;
   constructor(scene:Phaser.Scene,private readonly canMove:(x:number,y:number)=>boolean){
     super(scene,8*32+16,24*32+16,"player_s_0");
     scene.add.existing(this);this.setOrigin(.5,.78).setDepth(100);
@@ -18,10 +18,10 @@ export class Player extends Phaser.GameObjects.Sprite{
   preUpdate(time:number,delta:number){
     super.preUpdate(time,delta);
     if(!this.moving){
-      if(this.input.isJustDown("up"))this.requestStep(0,-1);
-      else if(this.input.isJustDown("down"))this.requestStep(0,1);
-      else if(this.input.isJustDown("left"))this.requestStep(-1,0);
-      else if(this.input.isJustDown("right"))this.requestStep(1,0);
+      if(this.inputManager.isJustDown("up"))this.requestStep(0,-1);
+      else if(this.inputManager.isJustDown("down"))this.requestStep(0,1);
+      else if(this.inputManager.isJustDown("left"))this.requestStep(-1,0);
+      else if(this.inputManager.isJustDown("right"))this.requestStep(1,0);
     }
     if(this.moving){
       const step=this.speed*delta/1000;
