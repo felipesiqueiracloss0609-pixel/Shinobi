@@ -1,0 +1,1 @@
+SHINOBI NO VALE DEMO 0.4 — standalone local demo. Open demo/index.html in a modern browser or run demo/EXECUTAR_WINDOWS.bat on Windows.
