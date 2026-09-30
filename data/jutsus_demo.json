@@ -1,0 +1,11 @@
+{
+  "jutsus":[
+    {"id":"katon_faísca","name":"Katon: Faísca Incandescente","class":"ninjutsu","element":"katon","level":1,"requirements":{"ninjutsu":5,"selo":2},"cost":{"chakra":12},"combat":{"power":18,"accuracy":0.95,"critBonus":0.05,"cooldownMs":900}},
+    {"id":"katon_rajada","name":"Katon: Rajada de Fogo","class":"ninjutsu","element":"katon","level":3,"requirements":{"ninjutsu":12,"selo":5,"level":3},"cost":{"chakra":22},"combat":{"power":34,"accuracy":0.9,"critBonus":0.08,"cooldownMs":1800,"range":4}},
+    {"id":"suiton_agulha","name":"Suiton: Agulha de Água","class":"ninjutsu","element":"suiton","level":1,"requirements":{"ninjutsu":5,"selo":2},"cost":{"chakra":12},"combat":{"power":16,"accuracy":0.97,"cooldownMs":800,"range":4}},
+    {"id":"fuuton_lamina","name":"Fūton: Lâmina Cortante","class":"ninjutsu","element":"fuuton","level":1,"requirements":{"ninjutsu":5,"agilidade":4,"selo":2},"cost":{"chakra":11},"combat":{"power":19,"accuracy":0.94,"cooldownMs":800,"range":4}},
+    {"id":"doton_punho","name":"Doton: Punho de Pedra","class":"taijutsu","element":"doton","level":1,"requirements":{"taijutsu":5,"forca":4},"cost":{"stamina":12},"combat":{"power":21,"accuracy":0.92,"cooldownMs":1000}},
+    {"id":"dynamic_kick","name":"Dynamic Kick","class":"taijutsu","type":"taijutsu","level":1,"requirements":{"taijutsu":5,"forca":4},"cost":{"stamina":15,"chakra":3},"combat":{"power":17,"accuracy":1.0,"critBonus":0.0,"cooldownMs":2000}}
+  ],
+  "designNote":"A estrutura de requisitos/custo/precisão/crítico/intervalo segue o modelo descrito no manual. Os nomes e valores de dano do protótipo são próprios, exceto Dynamic Kick, usado aqui como referência histórica de formato do manual."
+}
