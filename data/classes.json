@@ -1,0 +1,8 @@
+{
+  "classes":[
+    {"id":"taijutsu","label":"Taiuser","primary":"taijutsu","resourceBias":{"stamina":0.6,"chakra":0.4}},
+    {"id":"ninjutsu","label":"Ninuser","primary":"ninjutsu","resourceBias":{"chakra":0.65,"stamina":0.35}},
+    {"id":"genjutsu","label":"Genuser","primary":"genjutsu","resourceBias":{"chakra":0.7,"stamina":0.3}},
+    {"id":"bukijutsu","label":"Bukiuser","primary":"bukijutsu","resourceBias":{"stamina":0.55,"chakra":0.45}}
+  ]
+}
