@@ -1,0 +1,13 @@
+{
+  "invocations":[
+    {"id":"gamatatsu","label":"Kuchiyose - Gamatatsu","family":"sapo","stage":1,"requirements":{"energy":4,"inteligencia":3},"bonuses":{"selo":1,"concentracao":1}},
+    {"id":"gamakichi","label":"Kuchiyose - Gamakichi","family":"sapo","stage":2,"requirements":{"energy":6,"inteligencia":6},"bonuses":{"selo":2,"concentracao":2}},
+    {"id":"hebi","label":"Kuchiyose - Hebi","family":"cobra","stage":1,"requirements":{"energy":4,"inteligencia":3},"bonuses":{"selo":1,"percepcao":1}},
+    {"id":"kyodaija","label":"Kuchiyose - Kyodaija","family":"cobra","stage":2,"requirements":{"energy":6,"inteligencia":6},"bonuses":{"selo":2,"percepcao":2}},
+    {"id":"saru","label":"Kuchiyose - Saru","family":"macaco","stage":1,"requirements":{"energy":8,"forca":6},"bonuses":{"agilidade":6,"resistenciaPct":6}},
+    {"id":"enma","label":"Kuchiyose - Enma","family":"macaco","stage":2,"requirements":{"energy":10,"forca":8},"bonuses":{"agilidade":8,"resistenciaPct":8}},
+    {"id":"ninken","label":"Kuchiyose - Ninken","family":"cao","stage":2,"requirements":{"energy":8,"forca":9},"bonuses":{"agilidadePct":3,"concentracao":3}},
+    {"id":"ninken_buntai","label":"Kuchiyose - Ninken Buntai","family":"cao","stage":3,"requirements":{"energy":12,"forca":15},"bonuses":{"agilidadePct":5,"concentracao":5}}
+  ],
+  "designNote":"A fonte histórica define invocações como suporte de batalha com atributos e requisitos e mostra invocação específica como pré-requisito de certos modos Sennin. Valores acima são dados de protótipo inspirados na estrutura da fonte; o balanceamento definitivo será próprio."
+}
