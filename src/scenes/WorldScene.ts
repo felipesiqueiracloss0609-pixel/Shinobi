@@ -5,7 +5,6 @@ import {InputManager} from "../engine/input/InputManager";
 import {buildGrid} from "../engine/world/MapLoader";
 import {WorldRenderer} from "../engine/world/WorldRenderer";
 import {MonsterAI} from "../engine/ai/MonsterAI";
-import {InputManager} from "../engine/input/InputManager";
 import {Player} from "../entities/Player";
 import {CombatResolver} from "../game/combat/CombatResolver";
 import {GameSession,type SessionSnapshot} from "../game/session/GameSession";
@@ -133,6 +132,8 @@ export class WorldScene extends Phaser.Scene{
  private ensureTargetRing(){if(!this.targetRing)this.targetRing=this.add.rectangle(0,0,30,30).setOrigin(.5).setStrokeStyle(1,0xe6c96e).setFillStyle(0,0).setDepth(1200);if(this.target)this.targetRing.setPosition(this.target.grid.x*32+16,this.target.grid.y*32+16).setVisible(true)}
  private updateMobBar(m:Mob){m.hpFill.setScale(Math.max(0,m.hp/m.max),1)}
  private elementEffectKey(){return this.activeElement==="suiton"?"fx_suiton":this.activeElement==="fuuton"?"fx_fuuton":this.activeElement==="doton"?"fx_doton":this.activeElement==="raiton"?"fx_raiton":"fx_katon"}
+ private effect(m:Mob,key:string){const e=this.add.image(m.sprite.x,m.sprite.y-6,key).setDepth(1000);this.tweens.add({targets:e,alpha:0,scale:1.35,duration:220,onComplete:()=>e.destroy()})}
+ private interact(){if(this.collectLoot())return;const p=this.player.grid;if(Math.abs(p.x-5)+Math.abs(p.y-24)<=2){this.session.snapshot.quests.step=Math.max(this.session.snapshot.quests.step,1);this.message("MEI: T treina seu atributo; J procura um jutsu disponível.")}else if(Math.abs(p.x-14)+Math.abs(p.y-24)<=2){if(this.session.snapshot.quests.slimes>=5){this.session.snapshot.quests.ruinsAccepted=true;this.session.snapshot.quests.step=5;this.message("TOMA: prova entregue. Ruínas liberadas.")}else this.message("TOMA: faltam "+(5-this.session.snapshot.quests.slimes)+" Gosmas.")}else if(Math.abs(p.x-28)+Math.abs(p.y-22)<=2){this.activeElement=this.activeElement==="katon"?"suiton":this.activeElement==="suiton"?"fuuton":"katon";this.message("Santuário: "+this.activeElement.toUpperCase()+" ativo.")}}
 
  private attack(){
   if(this.attackCooldown>0)return;
