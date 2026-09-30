@@ -186,11 +186,7 @@ function renderThingFirstFrame(canvas, canvasWidth, originX, originY, datItem, s
 
   for (let h = 0; h < height; h++) {
     for (let w = 0; w < width; w++) {
-      const spriteIndex = (((((base * Number(datItem.patternZ ?? 1) + 0)
-        * Number(datItem.patternY ?? 1) + 0)
-        * Number(datItem.patternX ?? 1) + 0)
-        * Number(datItem.layers ?? 1) + layer)
-        * height + h) * width + w);
+      const spriteIndex = h * width + w;
 
       const spriteId = Number(datItem.spriteIds?.[spriteIndex] ?? 0);
       const rgba = sprSource.getRGBA(spriteId);
