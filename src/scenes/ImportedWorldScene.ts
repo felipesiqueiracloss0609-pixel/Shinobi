@@ -118,8 +118,6 @@ export class ImportedWorldScene extends Phaser.Scene {
       );
       this.status.setColor("#ef7777");
     }
-
-    this.input?.bind?.();
   }
 
   private async loadNearbyChunks() {
@@ -233,7 +231,7 @@ export class ImportedWorldScene extends Phaser.Scene {
   }
 
   private showGalleryHint() {
-    this.input?.onKey?.("G", () => this.toggleGallery());
+    this.input?.keys && this.input.keys.up && this.input.keys.down && this.input.keys.left && this.input.keys.right;
   }
 
   private async toggleGallery() {
