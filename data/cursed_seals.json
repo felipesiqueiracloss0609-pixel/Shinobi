@@ -1,0 +1,10 @@
+{
+  "paths":[
+    {"id":"sky","label":"Selo Amaldiçoado do Céu","focus":"ninjutsu","stages":[1,2,3]},
+    {"id":"earth","label":"Selo Amaldiçoado da Terra","focus":"taijutsu","stages":[1,2,3]},
+    {"id":"moon","label":"Selo Amaldiçoado da Lua","focus":"genjutsu","stages":[1,2,3]},
+    {"id":"sun","label":"Selo Amaldiçoado do Sol","focus":"bukijutsu","stages":[1,2,3]}
+  ],
+  "exclusiveWith":["sage_mode"],
+  "sourceNote":"A referência atual pública lista variações de selo e estágios; o sistema do protótipo usará famílias e estágios data-driven."
+}
