@@ -1,0 +1,2 @@
+export interface SpriteDefinition{id:string;textureKey:string;frameWidth:number;frameHeight:number;frames:number;directions:number}
+export class AssetRegistry{private defs=new Map<string,SpriteDefinition>();register(def:SpriteDefinition){if(this.defs.has(def.id))throw new Error("Duplicate asset id: "+def.id);this.defs.set(def.id,def)}get(id:string){const d=this.defs.get(id);if(!d)throw new Error("Unknown asset: "+id);return d}has(id:string){return this.defs.has(id)}}
