@@ -265,9 +265,11 @@ export class ImportedWorldScene extends Phaser.Scene {
 
     const ids = Array.from({ length: Math.min(24, spriteManifest.count) }, (_, index) => index + 1);
     const atlasKeys = new Set<string>();
+
     for (const id of ids) {
       const atlasIndex = Math.floor((id - 1) / spriteManifest.spritesPerAtlas);
-      atlasKeys.add(spriteManifest.atlases[atlasIndex].file);
+      const atlasFile = spriteManifest.atlases[atlasIndex]?.file;
+      if (atlasFile) atlasKeys.add(atlasFile);
     }
 
     for (const atlas of atlasKeys) {
@@ -278,25 +280,40 @@ export class ImportedWorldScene extends Phaser.Scene {
     }
 
     if (atlasKeys.size) {
-      await new Promise<void>((resolve) => {
+      await new Promise<void>((resolve, reject) => {
+        const complete = () => {
+          this.load.off(Phaser.Loader.Events.COMPLETE, complete);
+          this.load.off(Phaser.Loader.Events.FILE_LOAD_ERROR, fail);
+          resolve();
+        };
+        const fail = () => {
+          this.load.off(Phaser.Loader.Events.COMPLETE, complete);
+          this.load.off(Phaser.Loader.Events.FILE_LOAD_ERROR, fail);
+          reject(new Error("Falha ao carregar a biblioteca SPR."));
+        };
         if (this.load.isLoading()) {
-          this.load.once(Phaser.Loader.Events.COMPLETE, () => resolve());
+          this.load.once(Phaser.Loader.Events.COMPLETE, complete);
+          this.load.once(Phaser.Loader.Events.FILE_LOAD_ERROR, fail);
         } else {
+          this.load.once(Phaser.Loader.Events.COMPLETE, complete);
+          this.load.once(Phaser.Loader.Events.FILE_LOAD_ERROR, fail);
           this.load.start();
-          this.load.once(Phaser.Loader.Events.COMPLETE, () => resolve());
         }
       });
     }
 
     let index = 0;
     for (const id of ids) {
-      const info = spriteManifest.sprites[id];
-      const key = "gallery_" + info.atlas.replace(/[^a-z0-9]/gi, "_");
+      const atlasIndex = Math.floor((id - 1) / spriteManifest.spritesPerAtlas);
+      const slot = (id - 1) % spriteManifest.spritesPerAtlas;
+      const atlasFile = spriteManifest.atlases[atlasIndex].file;
+      const key = "gallery_" + atlasFile.replace(/[^a-z0-9]/gi, "_");
+      const cell = 32;
       const x = 20 + (index % 8) * 29;
       const y = 47 + Math.floor(index / 8) * 28;
       const image = this.add.image(x, y, key)
         .setOrigin(0)
-        .setCrop(info.x, info.y, info.width, info.height)
+        .setCrop((slot % spriteManifest.grid) * cell, Math.floor(slot / spriteManifest.grid) * cell, cell, cell)
         .setDisplaySize(26, 26);
       this.gallery.add(image);
       index++;
