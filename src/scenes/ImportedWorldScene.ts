@@ -143,16 +143,16 @@ export class ImportedWorldScene extends Phaser.Scene {
       await new Promise<void>((resolve, reject) => {
         const complete = () => {
           this.load.off(Phaser.Loader.Events.COMPLETE, complete);
-          this.load.off(Phaser.Loader.Events.LOAD_ERROR, fail);
+          this.load.off(Phaser.Loader.Events.FILE_LOAD_ERROR, fail);
           resolve();
         };
         const fail = () => {
           this.load.off(Phaser.Loader.Events.COMPLETE, complete);
-          this.load.off(Phaser.Loader.Events.LOAD_ERROR, fail);
+          this.load.off(Phaser.Loader.Events.FILE_LOAD_ERROR, fail);
           reject(new Error("Falha ao carregar um chunk gráfico."));
         };
         this.load.once(Phaser.Loader.Events.COMPLETE, complete);
-        this.load.once(Phaser.Loader.Events.LOAD_ERROR, fail);
+        this.load.once(Phaser.Loader.Events.FILE_LOAD_ERROR, fail);
         this.load.start();
       });
     }
